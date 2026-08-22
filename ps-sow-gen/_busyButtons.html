@@ -1,0 +1,35 @@
+<script>
+  // Shared busy-state helpers for action buttons. CSS (.btn.is-busy) handles
+  // the width lock via --btn-busy-w so the label swap doesn't shrink/grow the
+  // button. busyLabel is optional: pass a label to show spinner+text, or pass
+  // null/omit to only disable (used when navigating away).
+  function setButtonBusy(btn, isBusy, busyLabel) {
+    if (!btn) return;
+    if (isBusy) {
+      if (busyLabel) {
+        if (!btn.dataset.origLabel) {
+          btn.style.setProperty('--btn-busy-w', btn.offsetWidth + 'px');
+          btn.dataset.origLabel = btn.innerHTML;
+        }
+        btn.classList.add('is-busy');
+        btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span>' + busyLabel;
+      }
+      btn.disabled = true;
+    } else {
+      btn.disabled = false;
+      btn.classList.remove('is-busy');
+      if (btn.dataset.origLabel) {
+        btn.innerHTML = btn.dataset.origLabel;
+        delete btn.dataset.origLabel;
+      }
+      btn.style.removeProperty('--btn-busy-w');
+    }
+  }
+
+  function setButtonsBusy(ids, isBusy, busyLabel) {
+    (ids || []).forEach(function(id) {
+      const btn = document.getElementById(id);
+      if (btn) setButtonBusy(btn, isBusy, busyLabel);
+    });
+  }
+</script>

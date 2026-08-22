@@ -1,0 +1,71 @@
+<script>
+/**
+ * Shared save-result interpreter.
+ *
+ * Purpose: every page that calls a server function which writes to the sheet
+ * AND regenerates a doc gets ONE consistent way to classify the outcome.
+ * Each page still owns its own presentation (toasts, overlays, buttons, etc.),
+ * but the interpretation logic lives here so it can't drift between pages.
+ *
+ * INPUT: whatever the server returned via withSuccessHandler. Tolerates:
+ *   - null / undefined         (legacy: server used to return nothing on success)
+ *   - true / any truthy scalar (legacy: server used to return `true`)
+ *   - a result object:
+ *       {
+ *         ok: boolean,
+ *         savedToSheet: boolean,
+ *         docGenerated: boolean,
+ *         docUrl: string | null,
+ *         docError: string | null
+ *       }
+ *
+ * OUTPUT: a normalized object every caller can rely on:
+ *   {
+ *     outcome:      'full' | 'partial' | 'unexpected',
+ *     savedToSheet: boolean,
+ *     docGenerated: boolean,
+ *     docUrl:       string,        // '' when not present
+ *     docError:     string,        // '' when not present
+ *     message:      string         // human-readable, safe to drop into status text
+ *   }
+ *
+ * NOTE: this function does NOT handle hard failures — those go through
+ * withFailureHandler, not withSuccessHandler, and each page's failure
+ * handler stays page-local (Edit re-enables Save, New re-enables Create
+ * and does the duplicate-title focus dance).
+ */
+window.interpretSaveResult = function(result) {
+  // Normalize the input into a plain object so downstream checks are simple.
+  var res = (result && typeof result === 'object')
+    ? result
+    : { ok: true, savedToSheet: true, docGenerated: true, docUrl: null, docError: null };
+  var savedToSheet = !!res.savedToSheet;
+  var docGenerated = !!res.docGenerated;
+  var docUrl       = (typeof res.docUrl   === 'string' && res.docUrl)   ? res.docUrl   : '';
+  var docError     = (typeof res.docError === 'string' && res.docError) ? res.docError : (res.docError ? String(res.docError) : '');
+  var outcome;
+  var message;
+  if (savedToSheet && docGenerated) {
+    outcome = 'full';
+    message = 'Saved. Document was regenerated.';
+  } else if (savedToSheet && !docGenerated) {
+    outcome = 'partial';
+    message =
+      'Saved to the sheet, but the document did NOT regenerate.' +
+      (docError ? ' Reason: ' + docError : '') +
+      ' Click Save again in a moment to retry, or contact the admin if it keeps failing.';
+  } else {
+    // Server said "ok" but didn't actually save. Shouldn't happen, but be defensive.
+    outcome = 'unexpected';
+    message = 'Unexpected server response. Please check the sheet before retrying.';
+  }
+  return {
+    outcome:      outcome,
+    savedToSheet: savedToSheet,
+    docGenerated: docGenerated,
+    docUrl:       docUrl,
+    docError:     docError,
+    message:      message
+  };
+};
+</script>

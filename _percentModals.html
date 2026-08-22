@@ -1,0 +1,23 @@
+<!-- Percent over-100 hard-block modal -->
+<div id="percentOverModal" class="modal-overlay">
+  <div class="modal-card modal-error" role="alertdialog"
+       aria-labelledby="percentOverTitle" aria-describedby="percentOverMsg">
+    <h3 id="percentOverTitle" class="modal-title">Breakdown over 100%</h3>
+    <p id="percentOverMsg" class="modal-msg"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-primary" id="percentOverOk">Got it</button>
+    </div>
+  </div>
+</div>
+<!-- Percent under-100 soft-warn modal -->
+<div id="percentWarnModal" class="modal-overlay">
+  <div class="modal-card" role="dialog" aria-modal="true"
+       aria-labelledby="percentWarnTitle" aria-describedby="percentWarnMsg">
+    <h3 id="percentWarnTitle" class="modal-title">Breakdown under 100%</h3>
+    <p id="percentWarnMsg" class="modal-msg"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" id="percentWarnCancel">Go back &amp; fix</button>
+      <button type="button" class="btn btn-primary" id="percentWarnOk">Submit anyway</button>
+    </div>
+  </div>
+</div>

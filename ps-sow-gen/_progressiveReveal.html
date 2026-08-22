@@ -1,0 +1,115 @@
+<!-- Progressive-reveal + amount-calc helpers for the Financials/WB sections -->
+<!-- Shared between NewDataPage and EditDataPage. Provides:
+       - updateBreakdownAmounts   Recompute each bq*Amount display from
+                                  Quote Amount × bq*Pct on every input.
+       - refreshWbVisibility      Show WB fields up to (highest filled)+1
+                                  so users always see the next empty one
+                                  but not more. Because it reads current
+                                  values, calling it after populateForm
+                                  auto-expands to match loaded content.
+       - refreshBq3Visibility     Show optional Breakdown Items 3-5 if any
+                                  of them has content OR if the percents of
+                                  the earlier items sum to less than 100
+                                  (implying a further split is needed).
+     Dependencies: parseNumericValue from _helpers. Include this file
+     AFTER _helpers in the page's <head>. -->
+<script>
+  // ============ BREAKDOWN AMOUNT CALCULATORS ============
+  function updateBreakdownAmounts() {
+    const quote = parseNumericValue(document.getElementById('f_quoteAmt').value);
+    ['bq1', 'bq2', 'bq3', 'bq4', 'bq5'].forEach(function(key) {
+      const pctEl = document.getElementById('f_' + key + 'Pct');
+      const outEl = document.getElementById('f_' + key + 'Amount');
+      if (!pctEl || !outEl) return;
+      const pct = parseNumericValue(pctEl.value);
+      const amount = quote * (pct / 100);
+      outEl.textContent = '$' + amount.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    });
+  }
+  // ============ PROGRESSIVE REVEAL — WB 2.1 → 2.10 ============
+  function refreshWbVisibility() {
+    const keys = ['21','22','23','24','25','26','27','28','29','210'];
+    let maxFilled = -1;
+    keys.forEach(function(k, idx) {
+      const el = document.getElementById('f_wb' + k);
+      if (el && (el.value || '').trim()) {
+        maxFilled = Math.max(maxFilled, idx);
+      }
+    });
+    const revealUpTo = Math.min(maxFilled + 1, keys.length - 1);
+    keys.forEach(function(k, idx) {
+      const field = document.querySelector('[data-wb="' + k + '"]');
+      if (!field) return;
+      if (idx <= revealUpTo) field.classList.remove('wb-hidden');
+      else field.classList.add('wb-hidden');
+    });
+  }
+  // ============ WB COMPACTION ============
+  // When a WB field is cleared, shift all subsequent non-empty values up
+  // so there are no gaps. Empty fields end up at the bottom.
+  function compactWbFields() {
+    const keys = ['21','22','23','24','25','26','27','28','29','210'];
+    // Collect all non-empty values in order.
+    var values = [];
+    keys.forEach(function(k) {
+      var el = document.getElementById('f_wb' + k);
+      var val = (el && el.value || '').trim();
+      if (val) values.push(val);
+    });
+    // Reassign sequentially, then clear the rest.
+    keys.forEach(function(k, idx) {
+      var el = document.getElementById('f_wb' + k);
+      if (!el) return;
+      el.value = (idx < values.length) ? values[idx] : '';
+    });
+    refreshWbVisibility();
+  }
+  // COMMENTED OUT — BoM removal: BoM progressive reveal disabled.
+  // function refreshBomVisibility() {
+  //   const keys = ['1','2','3','4','5','6','7','8','9','10'];
+  //   let maxFilled = -1;
+  //   keys.forEach(function(k, idx) {
+  //     const s = document.getElementById('f_bom' + k + 'Service');
+  //     const d = document.getElementById('f_bom' + k + 'Deliverable');
+  //     if ((s && (s.value || '').trim()) || (d && (d.value || '').trim())) {
+  //       maxFilled = Math.max(maxFilled, idx);
+  //     }
+  //   });
+  //   const revealUpTo = Math.min(maxFilled + 1, keys.length - 1);
+  //   keys.forEach(function(k, idx) {
+  //     const row = document.querySelector('[data-bom="' + k + '"]');
+  //     if (!row) return;
+  //     if (idx <= revealUpTo) row.classList.remove('bom-hidden');
+  //     else row.classList.add('bom-hidden');
+  //   });
+  // }
+  // ============ PROGRESSIVE REVEAL — BQ3..BQ5 ============
+  // Breakdown items 3-5 are optional. Item k is shown when it has any
+  // content OR when every earlier item has a % entered and they sum to
+  // less than 100 (implying a further split is still needed).
+  function refreshBreakdownVisibility() {
+    [3, 4, 5].forEach(function(k) {
+      const block = document.getElementById('bq' + k + 'Block');
+      if (!block) return;
+      const hasData =
+        (document.getElementById('f_bq' + k).value || '').trim() ||
+        (document.getElementById('f_bq' + k + 'Summary').value || '').trim() ||
+        (document.getElementById('f_bq' + k + 'Pct').value || '').trim();
+      let sumUnder100 = false;
+      let allEntered = true;
+      let sum = 0;
+      for (let j = 1; j < k; j++) {
+        const raw = (document.getElementById('f_bq' + j + 'Pct').value || '').trim();
+        if (raw === '') { allEntered = false; break; }
+        sum += parseNumericValue(raw);
+      }
+      if (allEntered) sumUnder100 = sum < 100;
+      block.style.display = (hasData || sumUnder100) ? '' : 'none';
+    });
+  }
+  // Named alias so existing callers of refreshBq3Visibility keep working.
+  window.refreshBq3Visibility = refreshBreakdownVisibility;
+</script>

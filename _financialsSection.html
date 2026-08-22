@@ -1,0 +1,139 @@
+    <!-- 7. Financials -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-number">7</span>
+        <h3 class="section-title">Financials</h3>
+        <span class="section-hint">Amounts auto-format on blur.</span>
+      </div>
+      <div class="grid" style="margin-bottom: 20px;">
+        <div class="field" style="max-width: 260px;">
+          <label>Professional Services &mdash; Quote Amount</label>
+          <div class="input-with-prefix">
+            <span class="affix">$</span>
+            <input id="f_quoteAmt" data-type="currency" inputmode="decimal" placeholder="0.00">
+          </div>
+          <div class="error-msg">Enter a valid amount.</div>
+        </div>
+      </div>
+      <!-- Cost Breakdown toggle -->
+      <div class="field">
+        <label>Include Quote Breakdown?</label>
+        <div class="toggle-group" id="breakdownToggle">
+          <button type="button" class="toggle-btn active" data-value="No" onclick="setBreakdown('No')">No</button>
+          <button type="button" class="toggle-btn" data-value="Yes" onclick="setBreakdown('Yes')">Yes</button>
+        </div>
+        <input type="hidden" id="f_includeBreakdown" value="No">
+      </div>
+      <div id="breakdownBlock" class="conditional-block">
+        <div style="margin-top: 8px;" data-bq="1">
+          <div style="font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 10px;">Breakdown Item 1</div>
+          <div class="grid grid-3">
+            <div class="field">
+              <label>Item</label>
+              <input id="f_bq1">
+            </div>
+            <div class="field">
+              <label>Summary</label>
+              <textarea id="f_bq1Summary" style="min-height: 40px;"></textarea>
+            </div>
+            <div class="field">
+              <label>%</label>
+              <div class="input-with-suffix">
+                <input id="f_bq1Pct" data-type="percent" inputmode="decimal" placeholder="0">
+                <span class="affix">%</span>
+              </div>
+              <div class="error-msg">Enter 0-100.</div>
+              <div class="calc-amount" id="f_bq1Amount">$0.00</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top: 24px;" data-bq="2">
+          <div style="font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 10px;">Breakdown Item 2</div>
+          <div class="grid grid-3">
+            <div class="field">
+              <label>Item</label>
+              <input id="f_bq2">
+            </div>
+            <div class="field">
+              <label>Summary</label>
+              <textarea id="f_bq2Summary" style="min-height: 40px;"></textarea>
+            </div>
+            <div class="field">
+              <label>%</label>
+              <div class="input-with-suffix">
+                <input id="f_bq2Pct" data-type="percent" inputmode="decimal" placeholder="0">
+                <span class="affix">%</span>
+              </div>
+              <div class="error-msg">Enter 0-100.</div>
+              <div class="calc-amount" id="f_bq2Amount">$0.00</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top: 24px; display: none;" data-bq="3" id="bq3Block">
+          <div style="font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 10px;">Breakdown Item 3</div>
+          <div class="grid grid-3">
+            <div class="field">
+              <label>Item</label>
+              <input id="f_bq3">
+            </div>
+            <div class="field">
+              <label>Summary</label>
+              <textarea id="f_bq3Summary" style="min-height: 40px;"></textarea>
+            </div>
+            <div class="field">
+              <label>%</label>
+              <div class="input-with-suffix">
+                <input id="f_bq3Pct" data-type="percent" inputmode="decimal" placeholder="0">
+                <span class="affix">%</span>
+              </div>
+              <div class="error-msg">Enter 0-100.</div>
+              <div class="calc-amount" id="f_bq3Amount">$0.00</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top: 24px; display: none;" data-bq="4" id="bq4Block">
+          <div style="font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 10px;">Breakdown Item 4</div>
+          <div class="grid grid-3">
+            <div class="field">
+              <label>Item</label>
+              <input id="f_bq4">
+            </div>
+            <div class="field">
+              <label>Summary</label>
+              <textarea id="f_bq4Summary" style="min-height: 40px;"></textarea>
+            </div>
+            <div class="field">
+              <label>%</label>
+              <div class="input-with-suffix">
+                <input id="f_bq4Pct" data-type="percent" inputmode="decimal" placeholder="0">
+                <span class="affix">%</span>
+              </div>
+              <div class="error-msg">Enter 0-100.</div>
+              <div class="calc-amount" id="f_bq4Amount">$0.00</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top: 24px; display: none;" data-bq="5" id="bq5Block">
+          <div style="font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 10px;">Breakdown Item 5</div>
+          <div class="grid grid-3">
+            <div class="field">
+              <label>Item</label>
+              <input id="f_bq5">
+            </div>
+            <div class="field">
+              <label>Summary</label>
+              <textarea id="f_bq5Summary" style="min-height: 40px;"></textarea>
+            </div>
+            <div class="field">
+              <label>%</label>
+              <div class="input-with-suffix">
+                <input id="f_bq5Pct" data-type="percent" inputmode="decimal" placeholder="0">
+                <span class="affix">%</span>
+              </div>
+              <div class="error-msg">Enter 0-100.</div>
+              <div class="calc-amount" id="f_bq5Amount">$0.00</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

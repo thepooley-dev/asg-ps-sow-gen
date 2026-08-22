@@ -1,0 +1,56 @@
+<script>
+  // Shared field-by-field validation pass. Formatters, email validation, and
+  // error-state helpers live in _formValidation.html; checkProjectTitleDupe
+  // in _titleCheck.html; the field list in _fields.html.
+  // Returns the first field with an error (null when everything is valid).
+  function validateAll() {
+    let firstError = null;
+    FIELDS.forEach(function(f) {
+      const el = document.getElementById(f.id);
+      if (!el || f.isToggle) return;
+      if (el.hasAttribute && el.hasAttribute('data-required') && !(el.value || '').trim()) {
+        setError(el);
+        if (!firstError) firstError = el;
+        return;
+      }
+      // Submit-time backstop for the on-blur title uniqueness check.
+      // Catches the case where the user pastes a duplicate title and
+      // clicks Create/Save without ever blurring out of the field.
+      if (f.id === 'f_projectTitle' && !checkProjectTitleDupe()) {
+        if (!firstError) firstError = el;
+        return;
+      }
+      const type = el.getAttribute ? el.getAttribute('data-type') : null;
+      if (!type || !(el.value || '').trim()) return;
+      if (type === 'email' && !EMAIL_RE.test(el.value.trim())) {
+        setError(el);
+        if (!firstError) firstError = el;
+      } else if (type === 'phone') {
+        const digits = el.value.replace(/\D/g, '');
+        if (digits.length !== 10 && !(digits.length === 11 && digits.charAt(0) === '1')) {
+          setError(el);
+          if (!firstError) firstError = el;
+        }
+      } else if (type === 'currency') {
+        const num = parseFloat(el.value.replace(/[^0-9.\-]/g, ''));
+        if (isNaN(num)) { setError(el); if (!firstError) firstError = el; }
+      } else if (type === 'percent') {
+        const num = parseFloat(el.value.replace(/[^0-9.\-]/g, ''));
+        if (isNaN(num) || num < 0 || num > 100) { setError(el); if (!firstError) firstError = el; }
+      }
+    });
+    // COMMENTED OUT — BoM removal: Bill of Materials validation disabled.
+    // const bomToggleEl = document.getElementById('f_includeBoM');
+    // if (bomToggleEl && (bomToggleEl.value || '').trim() === 'Yes') {
+    //   ['f_bom1Service', 'f_bom1Deliverable'].forEach(function(id) {
+    //     const el = document.getElementById(id);
+    //     if (!el) return;
+    //     if (!(el.value || '').trim()) {
+    //       setError(el);
+    //       if (!firstError) firstError = el;
+    //     }
+    //   });
+    // }
+    return firstError;
+  }
+</script>

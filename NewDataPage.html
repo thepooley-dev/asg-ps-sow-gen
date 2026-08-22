@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>New Project</title>
+  <?!= include('_styles'); ?>
+  <?!= include('_overlays'); ?>
+  <?!= include('_helpers'); ?>
+  <?!= include('_formValidation'); ?>
+  <?!= include('_progressiveReveal'); ?>
+  <?!= include('_percentLogic'); ?>
+  <?!= include('_saveResult') ?>
+  <?!= include('_fields'); ?>
+  <?!= include('_titleCheck'); ?>
+  <?!= include('_toggles'); ?>
+  <?!= include('_validation'); ?>
+  <?!= include('_payload'); ?>
+  <?!= include('_busyButtons'); ?>
+  <?!= include('_navigation'); ?>
+</head>
+<body>
+  <div class="page">
+    <div id="newDataView" class="view">
+      <div class="page-header">
+        <h1 class="page-title">Create New Project</h1>
+        <p class="page-subtitle">Fill in the project details below. The document will be generated automatically on submit.</p>
+      </div>
+      <!-- 1. Client & Project Basics -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-number">1</span>
+          <h3 class="section-title">Client &amp; Project Basics</h3>
+          <span class="section-hint">Required fields marked with *</span>
+        </div>
+        <div class="grid grid-3">
+          <div class="field">
+            <label>Project Title *</label>
+            <input id="f_projectTitle" data-required>
+            <div class="error-msg">Project title is required.</div>
+          </div>
+          <div class="field">
+            <label>Customer *</label>
+            <input id="f_customer" data-required>
+            <div class="error-msg">Customer is required.</div>
+          </div>
+          <div class="field">
+            <label>Quote #</label>
+            <input id="f_quoteNum">
+          </div>
+        </div>
+      </div>
+      <!-- 2. VAM Contact -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-number">2</span>
+          <h3 class="section-title">Vendor Account Manager Contact</h3>
+        </div>
+        <div class="grid grid-3">
+          <div class="field">
+            <label>Name</label>
+            <input id="f_vamName">
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input id="f_vamEmail" data-type="email" inputmode="email">
+            <div class="error-msg">Enter a valid email.</div>
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input id="f_vamPhone" data-type="phone" inputmode="tel">
+            <div class="error-msg">Enter a valid phone number.</div>
+          </div>
+        </div>
+      </div>
+      <!-- 3. Assigned PM -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-number">3</span>
+          <h3 class="section-title">Assigned Project Manager</h3>
+        </div>
+        <div class="grid grid-3">
+          <div class="field">
+            <label>Name</label>
+            <input id="f_asgPmName">
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input id="f_asgPmEmail" data-type="email" inputmode="email">
+            <div class="error-msg">Enter a valid email.</div>
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input id="f_asgPmPhone" data-type="phone" inputmode="tel">
+            <div class="error-msg">Enter a valid phone number.</div>
+          </div>
+        </div>
+      </div>
+      <!-- 4. Client Contact -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-number">4</span>
+          <h3 class="section-title">Client Contact</h3>
+        </div>
+        <div class="grid grid-3">
+          <div class="field">
+            <label>Name</label>
+            <input id="f_ccName">
+          </div>
+          <div class="field">
+            <label>Title</label>
+            <input id="f_ccTitle">
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input id="f_ccEmail" data-type="email" inputmode="email">
+            <div class="error-msg">Enter a valid email.</div>
+          </div>
+        </div>
+        <div class="grid grid-3" style="margin-top: 12px;">
+          <div class="field">
+            <label>Phone</label>
+            <input id="f_ccPhone" data-type="phone" inputmode="tel">
+            <div class="error-msg">Enter a valid phone number.</div>
+          </div>
+        </div>
+      </div>
+      <!-- 5. Install Info -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-number">5</span>
+          <h3 class="section-title">Install Info</h3>
+        </div>
+        <div class="grid">
+          <div class="field">
+            <label>Install Address</label>
+            <textarea id="f_installAddr" style="min-height: 60px;"></textarea>
+          </div>
+        </div>
+        <div class="field" style="margin-top: 16px;">
+          <label>Multiple Installation Sites?</label>
+          <div class="toggle-group" id="multiSitesToggle">
+            <button type="button" class="toggle-btn active" data-value="No" onclick="setMultiSites('No')">No</button>
+            <button type="button" class="toggle-btn" data-value="Yes" onclick="setMultiSites('Yes')">Yes</button>
+          </div>
+          <input type="hidden" id="f_multiSites" value="No">
+        </div>
+        <div id="multiSitesBlock" class="conditional-block">
+          <div class="field">
+            <label>Additional Customer Installation Addresses</label>
+            <textarea id="f_addAddr" style="min-height: 60px;"></textarea>
+          </div>
+        </div>
+      </div>
+      <?!= include('_projectContentSection'); ?>
+      <?!= include('_financialsSection'); ?>
+      <!-- Footer actions -->
+      <div class="footer-actions">
+        <p id="newStatus" class="status-text"></p>
+        <div class="actions">
+          <button id="cancelBtn" class="btn btn-secondary action-btn" onclick="cancelNew()">Cancel</button>
+          <button id="createBtn" class="btn btn-primary action-btn" onclick="submitNew()">Create Project</button>
+        </div>
+      </div>
+    </div><!-- /#newDataView -->
+  </div><!-- /.page -->
+  <?!= include('_toast'); ?>
+  <?!= include('_resultOverlay'); ?>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      loadExistingTitles();
+      const titleEl = document.getElementById('f_projectTitle');
+      if (titleEl) {
+        titleEl.addEventListener('blur', checkProjectTitleDupe);
+      }
+      FIELDS.forEach(function(f) {
+        const el = document.getElementById(f.id);
+        if (!el) return;
+        const type = el.getAttribute ? el.getAttribute('data-type') : null;
+        if (type === 'phone') {
+          el.addEventListener('blur', function() { formatPhone(el); });
+          el.addEventListener('input', function() { clearError(el); });
+        } else if (type === 'currency') {
+          el.addEventListener('blur', function() { formatCurrency(el); });
+          el.addEventListener('input', function() { clearError(el); });
+        } else if (type === 'percent') {
+          el.addEventListener('blur', function() { formatPercent(el); });
+          el.addEventListener('input', function() { clearError(el); });
+        } else if (type === 'email') {
+          el.addEventListener('blur', function() { validateEmail(el); });
+          el.addEventListener('input', function() { clearError(el); });
+        } else if (el.hasAttribute && el.hasAttribute('data-required')) {
+          if (f.id === 'f_projectTitle') {
+            // Title is required AND must be unique. Blur runs the uniqueness
+            // check (wired above); input clears both the .has-error class
+            // and the swapped .error-msg text back to its default.
+            el.addEventListener('input', function() { clearTitleError(el); });
+          } else {
+            el.addEventListener('input', function() { clearError(el); });
+          }
+        }
+      });
+      ['f_quoteAmt', 'f_bq1Pct', 'f_bq2Pct', 'f_bq3Pct', 'f_bq4Pct', 'f_bq5Pct'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', function() {
+            updateBreakdownAmounts();
+            refreshBq3Visibility();
+          });
+        }
+      });
+      ['f_bq3', 'f_bq3Summary', 'f_bq4', 'f_bq4Summary', 'f_bq5', 'f_bq5Summary'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', refreshBq3Visibility);
+      });
+      ['f_wb21','f_wb22','f_wb23','f_wb24','f_wb25','f_wb26','f_wb27','f_wb28','f_wb29','f_wb210'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', compactWbFields);
+      });
+      // COMMENTED OUT — BoM removal: BoM progressive reveal listeners disabled.
+      // ['f_bom1Service','f_bom1Deliverable','f_bom2Service','f_bom2Deliverable',
+      //  'f_bom3Service','f_bom3Deliverable','f_bom4Service','f_bom4Deliverable',
+      //  'f_bom5Service','f_bom5Deliverable','f_bom6Service','f_bom6Deliverable',
+      //  'f_bom7Service','f_bom7Deliverable','f_bom8Service','f_bom8Deliverable',
+      //  'f_bom9Service','f_bom9Deliverable','f_bom10Service','f_bom10Deliverable'].forEach(function(id) {
+      //   const el = document.getElementById(id);
+      //   if (el) el.addEventListener('input', refreshBomVisibility);
+      // });
+    });
+    // ============ BUTTON BUSY-STATE HELPERS ============
+    function getCreateBtn() {
+      const btns = document.querySelectorAll('.footer-actions .action-btn.btn-primary');
+      return btns[btns.length - 1] || null;
+    }
+    function getCancelBtn() {
+      const btns = document.querySelectorAll('.footer-actions .action-btn.btn-secondary');
+      return btns[btns.length - 1] || null;
+    }
+    // ============ SUBMIT ============
+    function submitNew() {
+      const firstError = validateAll();
+      if (firstError) {
+        firstError.focus();
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showToast('Fix highlighted fields before submitting.', 'error');
+        return;
+      }
+      // Shared percent check handles: guard=No/missing (skip), total=0 (skip),
+      // total>100 (hard block + onBlock scroll), total<100 (soft warn),
+      // total=100 (proceed).
+      checkPercentBeforeSubmit(
+        doSubmit,
+        function() {
+          document.getElementById('f_bq1Pct').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      );
+    }
+    function doSubmit() {
+      // Shared payload builder strips display-only formatting (currency
+      // commas, trailing %) the same way the edit page does.
+      const formData = buildFormPayload();
+      const statusEl = document.getElementById('newStatus');
+      setCreateButtonCreating(true);
+      statusEl.className = 'status-text info';
+      statusEl.textContent = 'Creating project and generating document...';
+      google.script.run
+        .withSuccessHandler(function(result) {
+          const r = interpretSaveResult(result);
+          if (r.outcome === 'full') {
+            renderNewFullSuccess(r);
+          } else if (r.outcome === 'partial') {
+            renderNewPartialSuccess(r);
+          } else {
+            renderNewUnexpected(r);
+          }
+        })
+        .withFailureHandler(function(err) {
+          setCreateButtonCreating(false);
+          const msg = (err && err.message ? err.message : String(err));
+          statusEl.className = 'status-text error';
+          statusEl.textContent = 'Error creating: ' + msg;
+          if (/already exists/i.test(msg)) {
+            showToast('That project title is already taken.', 'error');
+            const titleEl = document.getElementById('f_projectTitle');
+            if (titleEl) {
+              titleEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              titleEl.focus();
+            }
+          } else {
+            showToast('Create failed. See message below.', 'error');
+          }
+        })
+        .createRow(formData);
+    }
+    function setCreateButtonCreating(isCreating) {
+      setButtonBusy(document.getElementById('createBtn'), isCreating, 'Creating...');
+    }
+    // --- Page-local presentation for each outcome ---
+    function renderNewFullSuccess(r) {
+      const statusEl = document.getElementById('newStatus');
+      statusEl.className = 'status-text success';
+      statusEl.textContent = r.message;
+      showToast('Project created.', 'success');
+      openResultOverlay({
+        variant: 'success',
+        heading: 'Project Created',
+        body:    'Your project has been created and the document is ready.',
+        docUrl:  r.docUrl
+      });
+      // Create button stays disabled — user should not double-create.
+    }
+    function renderNewPartialSuccess(r) {
+      const statusEl = document.getElementById('newStatus');
+      statusEl.className = 'status-text warn';
+      statusEl.textContent = r.message;
+      showToast('Project saved, but the document did NOT generate.', 'error');
+      openResultOverlay({
+        variant:     'warning',
+        heading:     'Project Created (document pending)',
+        body:        'Your project row was saved to the sheet, but the document did NOT generate.',
+        warningText: r.message
+      });
+      // Create button stays disabled — the row exists, so re-creating would collide.
+    }
+    function renderNewUnexpected(r) {
+      setCreateButtonCreating(false);
+      const statusEl = document.getElementById('newStatus');
+      statusEl.className = 'status-text error';
+      statusEl.textContent = r.message;
+      showToast('Unexpected server response.', 'error');
+    }
+    function cancelNew() {
+      const cancelBtn = getCancelBtn();
+      const createBtn = getCreateBtn();
+      if (createBtn) createBtn.disabled = true;
+      setButtonBusy(cancelBtn, true, 'Returning...');
+      if (!redirectToChooser()) fetchAndRedirectToChooser();
+    }
+    // ============ NAVIGATION ============
+    function returnToChooser() {
+      const returnBtn = document.getElementById('returnToChooserBtn');
+      if (returnBtn) setButtonBusy(returnBtn, true, 'Returning...');
+      if (!redirectToChooser()) fetchAndRedirectToChooser();
+    }
+  </script>
+  <?!= include('_percentModals'); ?>
+</body>
+</html>

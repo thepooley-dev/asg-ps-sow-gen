@@ -1,0 +1,116 @@
+<!-- Form validation & formatting helpers -->
+<!-- Shared between NewDataPage and EditDataPage. Provides:
+       - EMAIL_RE                             (email regex)
+       - formatPhone / formatCurrency / formatPercent   (on-blur formatters)
+       - validateEmail                        (on-blur email check)
+       - setError / clearError                (generic field error state)
+       - setTitleError / clearTitleError      (title-field error state
+                                               with message swap + restore)
+     Silent mode:
+       Formatters take a `silent` arg. When true (used by populateForm
+       loading a server row), the formatter still normalizes well-formed
+       input but refuses to flag bad input as a user-visible error.
+       Rationale: don't yell at users about badly-formatted data that
+       came from the server — they didn't type it.
+     Title error swap:
+       Title fields have two possible error messages ("required" vs.
+       "duplicate"). setTitleError caches the field's original .error-msg
+       text on first swap; clearTitleError restores from that cache.
+       This means each page keeps its own default wording in HTML — no
+       per-page config or arguments needed here.
+     Pages remain responsible for wiring these to their fields inside
+     their own DOMContentLoaded loop, since each page's FIELDS list
+     and title-blur behavior differ. -->
+<script>
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // ============ FORMATTERS ============
+  function formatPhone(el, silent) {
+    const raw = (el.value || '').replace(/\D/g, '');
+    if (!raw) { el.value = ''; if (!silent) clearError(el); return; }
+    if (raw.length === 10) {
+      el.value = '(' + raw.slice(0,3) + ') ' + raw.slice(3,6) + '-' + raw.slice(6);
+      clearError(el);
+    } else if (raw.length === 11 && raw.charAt(0) === '1') {
+      el.value = '(' + raw.slice(1,4) + ') ' + raw.slice(4,7) + '-' + raw.slice(7);
+      clearError(el);
+    } else if (!silent) {
+      setError(el);
+    }
+  }
+  function formatCurrency(el, silent) {
+    const raw = (el.value || '').replace(/[^0-9.\-]/g, '');
+    if (!raw) { el.value = ''; if (!silent) clearError(el); return; }
+    const num = parseFloat(raw);
+    if (isNaN(num)) {
+      if (!silent) setError(el);
+      return;
+    }
+    el.value = num.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    clearError(el);
+  }
+  function formatPercent(el, silent) {
+    const raw = (el.value || '').replace(/[^0-9.\-]/g, '');
+    if (!raw) { el.value = ''; if (!silent) clearError(el); return; }
+    const num = parseFloat(raw);
+    if (isNaN(num) || num < 0 || num > 100) {
+      if (!silent) setError(el);
+      return;
+    }
+    el.value = (Math.round(num * 100) / 100).toString();
+    clearError(el);
+  }
+  // ============ EMAIL VALIDATION ============
+  // Returns true when the value is valid (blank counts as valid — the
+  // required-check is handled by validateAll on each page). Toggles
+  // .has-error as a side effect so the field visually reflects state.
+  function validateEmail(el) {
+    const val = (el.value || '').trim();
+    if (!val) { clearError(el); return true; }
+    if (EMAIL_RE.test(val)) { clearError(el); return true; }
+    setError(el);
+    return false;
+  }
+  // ============ GENERIC ERROR STATE ============
+  function setError(el) {
+    el.classList.add('has-error');
+    const field = el.closest('.field');
+    if (field) field.classList.add('has-error');
+  }
+  function clearError(el) {
+    el.classList.remove('has-error');
+    const field = el.closest('.field');
+    if (field) field.classList.remove('has-error');
+  }
+  // ============ TITLE-FIELD ERROR STATE ============
+  // Set error state AND swap the .error-msg text to a custom message.
+  // Caches the field's original .error-msg text in a data-attribute on
+  // first swap, so clearTitleError can restore it without page-specific
+  // config.
+  function setTitleError(el, msg) {
+    setError(el);
+    const field = el.closest('.field');
+    if (!field) return;
+    const errEl = field.querySelector('.error-msg');
+    if (!errEl) return;
+    if (!errEl.dataset.defaultMsg) {
+      errEl.dataset.defaultMsg = errEl.textContent;
+    }
+    errEl.textContent = msg;
+  }
+  // Clear error state AND restore the .error-msg text to its cached
+  // default (from a prior setTitleError). If we never swapped, the text
+  // is already the default — no-op.
+  function clearTitleError(el) {
+    clearError(el);
+    const field = el.closest('.field');
+    if (!field) return;
+    const errEl = field.querySelector('.error-msg');
+    if (!errEl) return;
+    if (errEl.dataset.defaultMsg) {
+      errEl.textContent = errEl.dataset.defaultMsg;
+    }
+  }
+</script>

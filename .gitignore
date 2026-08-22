@@ -1,0 +1,10 @@
+# clasp — contains your script ID, not secret but no reason to publish it
+.clasp.json
+# Node stuff, in case you ever add npm packages here
+node_modules/
+# OS junk
+.DS_Store
+Thumbs.db
+# Editor junk
+.vscode/
+.idea/prem-sla-gen/

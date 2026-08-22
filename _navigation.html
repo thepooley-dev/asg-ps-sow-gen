@@ -1,0 +1,40 @@
+<script>
+  // Shared web-app URL pre-fetch and chooser redirect helpers. Each page
+  // still defines its own returnToChooser() to handle page-local button
+  // busy states before delegating to redirectToChooser()/fetchAndRedirect().
+  var chooserUrl = null;
+
+  function preloadChooserUrl() {
+    google.script.run
+      .withSuccessHandler(function(url) { chooserUrl = url; })
+      .withFailureHandler(function() { /* fallback at redirect time */ })
+      .getWebAppUrl();
+  }
+  preloadChooserUrl();
+
+  // Redirects to the chooser using the pre-fetched URL. Returns true if the
+  // redirect was initiated, false if the pre-fetch hasn't arrived yet.
+  function redirectToChooser() {
+    if (chooserUrl) {
+      window.top.location.href = withCacheBust(chooserUrl);
+      return true;
+    }
+    return false;
+  }
+
+  // Fallback: fetch the URL now, then redirect. Mirrors the pre-fetch call
+  // but blocks on the result.
+  function fetchAndRedirectToChooser() {
+    google.script.run
+      .withSuccessHandler(function(url) {
+        window.top.location.href = withCacheBust(url);
+      })
+      .withFailureHandler(function() {
+        try {
+          const clean = String(window.top.location.href).split('?')[0];
+          window.top.location.href = clean;
+        } catch (e) {}
+      })
+      .getWebAppUrl();
+  }
+</script>

@@ -1,0 +1,29 @@
+# Files/dirs that clasp should NOT push to Apps Script.
+# Patterns are gitignore-style; directories need **/ traversal.
+
+# Secrets & local config
+.clasp.json
+.clasprc.json
+
+# Git
+.git/**
+
+# Node tooling
+**/node_modules/**
+package.json
+package-lock.json
+jsconfig.json
+tsconfig.json
+*.tsbuildinfo
+
+# Editor
+.vscode/**
+.idea/**
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Docs & misc
+**/*.md
+**/*.log
