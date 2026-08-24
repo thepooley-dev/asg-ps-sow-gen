@@ -43,14 +43,11 @@
     </div>
   </div>
   <script>
-    let allProjects = [];
-    let selectedProject = "";
-    let activeIndex = -1;
-    let currentMatches = [];
+    var allProjects = <?= JSON.stringify(getProjectList()) ?>;
+    var selectedProject = "";
+    var activeIndex = -1;
+    var currentMatches = [];
     document.addEventListener('DOMContentLoaded', function() {
-      google.script.run.withSuccessHandler(function(list) {
-        allProjects = list || [];
-      }).getProjectList();
       const input = document.getElementById('projectInput');
       input.addEventListener('input', filterProjects);
       input.addEventListener('focus', filterProjects);
