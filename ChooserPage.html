@@ -43,7 +43,7 @@
     </div>
   </div>
   <script>
-    var allProjects = <?= JSON.stringify(getProjectList()) ?>;
+    var allProjects = <?!= JSON.stringify(getProjectList()) ?>;
     var selectedProject = "";
     var activeIndex = -1;
     var currentMatches = [];
