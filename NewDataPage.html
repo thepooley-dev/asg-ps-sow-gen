@@ -174,7 +174,8 @@
     document.addEventListener('DOMContentLoaded', function() {
       // Seeded server-side at render time (see _titleCheck.html for the
       // async loadExistingTitles() used later to refresh after a save).
-      existingProjectTitles = <?!= JSON.stringify(getProjectList()) ?>.map(function(t) {
+      var rawProjectTitles = <?!= JSON.stringify(getProjectList()) ?>;
+      existingProjectTitles = rawProjectTitles.map(function(t) {
         return String(t || '').trim().toLowerCase();
       });
       const titleEl = document.getElementById('f_projectTitle');
