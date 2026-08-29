@@ -367,17 +367,21 @@ function generateDocForRow(rowNumber) {
   var projectTitle = row[1] || "";
   var baseFileName = customerName + " - " + projectTitle + " SOW";
   var targetFolder = DriveApp.getFolderById(CONFIG.DOC_FOLDER_ID);
-  // Find the highest existing revision.
+  // Find the highest existing revision, collecting matching files as we go
+  // so the purge step below can reuse this list instead of re-scanning the
+  // folder a second time.
   var revPattern = new RegExp(
     "^" + baseFileName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + " - Rev (\\d+)$"
   );
   var existingFiles = targetFolder.getFiles();
   var maxRev = 0;
+  var matchingFiles = []; // { file, rev } for this baseFileName only
   while (existingFiles.hasNext()) {
     var f = existingFiles.next();
     var match = f.getName().match(revPattern);
     if (match) {
       var n = parseInt(match[1], 10);
+      matchingFiles.push({ file: f, rev: n });
       if (n > maxRev) maxRev = n;
     }
   }
@@ -480,18 +484,17 @@ function generateDocForRow(rowNumber) {
     // RETHROW so the caller (createRow / updateRow) can surface it.
     throw error;
   }
-  // Purge everything older than the 3 most recent revisions. If this fails,
-  // don't let it poison an otherwise-successful doc generation.
+  // Purge everything older than the 3 most recent revisions, reusing the
+  // matchingFiles list from the scan above instead of re-scanning the
+  // folder. If this fails, don't let it poison an otherwise-successful doc
+  // generation.
   try {
     var cutoff = revisionNumber - 3;
     if (cutoff > 0) {
-      var allFiles = targetFolder.getFiles();
-      while (allFiles.hasNext()) {
-        var af = allFiles.next();
-        var m = af.getName().match(revPattern);
-        if (m && parseInt(m[1], 10) <= cutoff) {
-          af.setTrashed(true);
-          Logger.log("Purged old archive file: " + af.getName());
+      for (var mi = 0; mi < matchingFiles.length; mi++) {
+        if (matchingFiles[mi].rev <= cutoff) {
+          matchingFiles[mi].file.setTrashed(true);
+          Logger.log("Purged old archive file: " + matchingFiles[mi].file.getName());
         }
       }
     }

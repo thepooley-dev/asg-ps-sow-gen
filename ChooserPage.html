@@ -44,6 +44,7 @@
   </div>
   <script>
     var allProjects = <?!= JSON.stringify(getProjectList()) ?>;
+    var webAppUrl = <?!= JSON.stringify(getWebAppUrl()) ?>;
     var selectedProject = "";
     var activeIndex = -1;
     var currentMatches = [];
@@ -62,18 +63,7 @@
           e.preventDefault();
           newEntryBtn.style.pointerEvents = 'none';
           newEntryBtn.textContent = 'Opening…';
-          google.script.run
-            .withSuccessHandler(function(url) {
-              window.top.location.href = url + '?page=new';
-            })
-            .withFailureHandler(function(err) {
-              newEntryBtn.style.pointerEvents = '';
-              newEntryBtn.innerHTML = 'New Entry &rarr;';
-              const s = document.getElementById('status');
-              s.className = 'status-text error';
-              s.textContent = 'Could not open new-entry form: ' + (err && err.message ? err.message : err);
-            })
-            .getWebAppUrl();
+          window.top.location.href = webAppUrl + '?page=new';
         });
       }
     });
@@ -165,17 +155,7 @@
       editBtn.textContent = 'Opening…';
       statusEl.className = 'status-text info';
       statusEl.textContent = 'Loading project...';
-      google.script.run
-        .withSuccessHandler(function(url) {
-          window.top.location.href = url + '?page=edit&project=' + encodeURIComponent(selected);
-        })
-        .withFailureHandler(function(err) {
-          editBtn.disabled = false;
-          editBtn.textContent = 'Edit This Project';
-          statusEl.className = 'status-text error';
-          statusEl.textContent = 'Could not open editor: ' + (err && err.message ? err.message : err);
-        })
-        .getWebAppUrl();
+      window.top.location.href = webAppUrl + '?page=edit&project=' + encodeURIComponent(selected);
     }
   </script>
 </body>
