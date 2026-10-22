@@ -139,8 +139,8 @@ the new project appears in the list.
 
 ## 4. Doc verification — created doc (all testers)
 
-> Open the generated doc from the success overlay. Filename should be `Beta Test Co. - Beta Create XX
-> - 2026-08 SOW - Rev 1`.
+> Open the generated doc from the success overlay. Filename should be `<Quote #> - Beta
+> Test Co. - Beta Create XX - 2026-08 - Rev 1`.
 
 ### D1. Placeholders
 

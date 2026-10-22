@@ -147,6 +147,9 @@ function createRow(formData) {
   if (!submittedTitle) {
     throw new Error("Project Title is required.");
   }
+  if (!(formData.quoteNum || "").toString().trim()) {
+    throw new Error("Quote # is required.");
+  }
   if (projectTitleExists_(sheet, submittedTitle)) {
     throw new Error(
       "A project titled \"" + submittedTitle + "\" already exists. " +
@@ -208,7 +211,7 @@ function doGet(e) {
     // a save).
     const rawRow = projectTitle ? getRawRowData(projectTitle) : null;
     template.latestDocUrl = rawRow
-      ? findLatestDocUrl_(rawRow[2] + " - " + projectTitle + " SOW")
+      ? findLatestDocUrl_(rawRow[3] + " - " + rawRow[2] + " - " + projectTitle)
       : null;
     return template.evaluate()
       .setTitle('Edit Project')
@@ -270,6 +273,9 @@ function updateRow(originalProjectTitle, formData) {
   const submittedTitle = (formData.projectTitle || "").toString().trim();
   if (!submittedTitle) {
     throw new Error("Project Title is required.");
+  }
+  if (!(formData.quoteNum || "").toString().trim()) {
+    throw new Error("Quote # is required.");
   }
   if (projectTitleExists_(sheet, submittedTitle, targetRow)) {
     throw new Error(
@@ -402,7 +408,8 @@ function generateDocForRow(rowNumber) {
   }
   var customerName = row[2] || "";
   var projectTitle = row[1] || "";
-  var baseFileName = customerName + " - " + projectTitle + " SOW";
+  var quoteNum = row[3] || "";
+  var baseFileName = quoteNum + " - " + customerName + " - " + projectTitle;
   var targetFolder = DriveApp.getFolderById(CONFIG.DOC_FOLDER_ID);
   // Find the highest existing revision, collecting matching files as we go
   // so the purge step below can reuse this list instead of re-scanning the
@@ -521,12 +528,14 @@ function generateDocForRow(rowNumber) {
     // RETHROW so the caller (createRow / updateRow) can surface it.
     throw error;
   }
-  // Purge everything older than the 3 most recent revisions, reusing the
+  // Purge everything except the just-created revision, reusing the
   // matchingFiles list from the scan above instead of re-scanning the
-  // folder. If this fails, don't let it poison an otherwise-successful doc
-  // generation.
+  // folder. Customers didn't want multiple revisions sitting in Drive --
+  // Google Docs already keeps its own version history -- so only the
+  // latest is kept. If this fails, don't let it poison an otherwise-
+  // successful doc generation.
   try {
-    var cutoff = revisionNumber - 3;
+    var cutoff = revisionNumber - 1;
     if (cutoff > 0) {
       for (var mi = 0; mi < matchingFiles.length; mi++) {
         if (matchingFiles[mi].rev <= cutoff) {
