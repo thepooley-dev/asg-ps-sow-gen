@@ -1,0 +1,22 @@
+<!-- Floating "back to top" button for long forms. Shared between NewDataPage
+     and EditDataPage. Hidden until the user scrolls down a bit, then
+     scrolls smoothly back to the top of the page on click. -->
+<button type="button" id="scrollTopBtn" class="scroll-top-btn" aria-label="Back to top" title="Back to top">&uarr;</button>
+<script>
+  (function() {
+    var btn = document.getElementById('scrollTopBtn');
+    if (!btn) return;
+    function updateVisibility() {
+      if (window.scrollY > 300) {
+        btn.classList.add('show');
+      } else {
+        btn.classList.remove('show');
+      }
+    }
+    window.addEventListener('scroll', updateVisibility, { passive: true });
+    updateVisibility();
+    btn.addEventListener('click', function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  })();
+</script>

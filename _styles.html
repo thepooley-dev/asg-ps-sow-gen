@@ -520,6 +520,29 @@
       flex-wrap: wrap;
     }
     .footer-actions .actions { display: flex; gap: 8px; }
+    /* ============ SCROLL-TO-TOP BUTTON ============ */
+    .scroll-top-btn {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: none;
+      background: var(--brand-blue);
+      color: var(--white);
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(10px);
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+      z-index: 900;
+    }
+    .scroll-top-btn.show { opacity: 1; visibility: visible; transform: translateY(0); }
+    .scroll-top-btn:hover { background: var(--brand-blue-dark); }
     /* ============ UTILITIES ============ */
     .wb-hidden { display: none !important; }
     /* COMMENTED OUT — BoM removal: .bom-hidden rule disabled. */

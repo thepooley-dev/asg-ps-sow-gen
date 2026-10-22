@@ -170,6 +170,7 @@
     <div class="footer-actions">
       <p id="editStatus" class="status-text"></p>
       <div class="actions">
+        <button class="btn btn-secondary" id="viewDocBtnBottom" onclick="viewLatestDocument()" disabled>View Latest Document</button>
         <button class="btn btn-secondary" id="cancelBtnBottom" onclick="cancelEdit()">Cancel</button>
         <button class="btn btn-primary" id="saveBtnBottom" onclick="saveEdit()">Save Changes</button>
       </div>
@@ -210,6 +211,7 @@
   </div>
   <?!= include('_toast'); ?>
   <?!= include('_resultOverlay'); ?>
+  <?!= include('_scrollTop'); ?>
   <script>
     // Module-scoped state.
     // - projectName: server-provided current title, used for the heading,
@@ -264,14 +266,15 @@
       existingProjectTitles = rawProjectTitles.map(function(t) {
         return String(t || '').trim().toLowerCase();
       });
-      var viewDocBtn = document.getElementById('viewDocBtn');
-      if (viewDocBtn) {
+      ['viewDocBtn', 'viewDocBtnBottom'].forEach(function(id) {
+        var btn = document.getElementById(id);
+        if (!btn) return;
         if (latestDocUrl) {
-          viewDocBtn.disabled = false;
+          btn.disabled = false;
         } else {
-          viewDocBtn.title = 'No document has been generated yet.';
+          btn.title = 'No document has been generated yet.';
         }
-      }
+      });
       const titleEl = document.getElementById('f_projectTitle');
       if (titleEl) {
         titleEl.addEventListener('blur', checkProjectTitleDupe);
