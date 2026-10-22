@@ -36,6 +36,7 @@
         <h2 id="editHeading">Loading&hellip;</h2>
       </div>
       <div class="actions">
+        <button class="btn btn-secondary" id="viewDocBtn" onclick="viewLatestDocument()" disabled>View Latest Document</button>
         <button class="btn btn-secondary" id="cancelBtn" onclick="cancelEdit()">Cancel</button>
         <button class="btn btn-primary" id="saveBtn" onclick="saveEdit()" disabled>Save Changes</button>
       </div>
@@ -221,7 +222,14 @@
     var projectName = document.body.getAttribute('data-project') || '';
     var originalSnapshot = null;
     var pendingSaveData = null;
+    // Baked in server-side by doGet (see findLatestDocUrl_ in Code.js) so
+    // "View Latest Document" works immediately, even before any edit --
+    // there's no fresh docUrl to fall back on until a save actually happens.
+    var latestDocUrl = <?!= JSON.stringify(latestDocUrl) ?>;
     function getEditExcludeTitle() { return projectName; }
+    function viewLatestDocument() {
+      if (latestDocUrl) window.open(latestDocUrl, '_blank', 'noopener');
+    }
     // ============ SNAPSHOT / DIRTY-CHECK ============
     // takeSnapshot serializes the current form state. Called once after
     // populateForm to establish the baseline (originalSnapshot), then on
@@ -256,6 +264,14 @@
       existingProjectTitles = rawProjectTitles.map(function(t) {
         return String(t || '').trim().toLowerCase();
       });
+      var viewDocBtn = document.getElementById('viewDocBtn');
+      if (viewDocBtn) {
+        if (latestDocUrl) {
+          viewDocBtn.disabled = false;
+        } else {
+          viewDocBtn.title = 'No document has been generated yet.';
+        }
+      }
       const titleEl = document.getElementById('f_projectTitle');
       if (titleEl) {
         titleEl.addEventListener('blur', checkProjectTitleDupe);

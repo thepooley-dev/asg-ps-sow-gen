@@ -198,9 +198,18 @@ function doGet(e) {
   }
   if (page === 'edit') {
     const template = HtmlService.createTemplateFromFile('EditDataPage');
-    template.projectName = (e && e.parameter && e.parameter.project)
+    const projectTitle = (e && e.parameter && e.parameter.project)
       ? String(e.parameter.project)
       : '';
+    template.projectName = projectTitle;
+    // Baked in server-side so the Edit page can offer "View Latest Document"
+    // immediately, even if the user never changes anything (there would
+    // otherwise be no fresh docUrl to hand back, since that only comes from
+    // a save).
+    const rawRow = projectTitle ? getRawRowData(projectTitle) : null;
+    template.latestDocUrl = rawRow
+      ? findLatestDocUrl_(rawRow[2] + " - " + projectTitle + " SOW")
+      : null;
     return template.evaluate()
       .setTitle('Edit Project')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
@@ -316,6 +325,34 @@ function formatMoney(value) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
+}
+/**
+ * Scans the archive folder for the highest-revision file matching
+ * baseFileName and returns its URL, or null if none exists yet. Used by
+ * the Edit page's "View Latest Document" button, which needs to work even
+ * when nothing has been edited -- there's no fresh save in that case to
+ * hand back a docUrl from.
+ */
+function findLatestDocUrl_(baseFileName) {
+  var targetFolder = DriveApp.getFolderById(CONFIG.DOC_FOLDER_ID);
+  var revPattern = new RegExp(
+    "^" + baseFileName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + " - Rev (\\d+)$"
+  );
+  var files = targetFolder.getFiles();
+  var maxRev = 0;
+  var latestFile = null;
+  while (files.hasNext()) {
+    var f = files.next();
+    var match = f.getName().match(revPattern);
+    if (match) {
+      var n = parseInt(match[1], 10);
+      if (n > maxRev) {
+        maxRev = n;
+        latestFile = f;
+      }
+    }
+  }
+  return latestFile ? latestFile.getUrl() : null;
 }
 function generateDocForRow(rowNumber) {
   // throw new Error("simulated doc-gen failure");
