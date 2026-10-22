@@ -232,6 +232,56 @@ function getProjectList() {
   return values.flat().filter(String);
 }
 /**
+ * Returns [{ key, label }] for the chooser's "Edit an Existing Document"
+ * list. `key` is the project title (same value getProjectList() returns --
+ * still the lookup key used to build the edit URL and to populate the
+ * Edit page); `label` is the record's actual current document title
+ * ("<Quote #> - <Customer> - <Project Name> - Rev N") so the list reads
+ * the same as what's actually sitting in Drive, instead of just the bare
+ * project title.
+ *
+ * getProjectList() itself is left untouched -- it's also used by
+ * _titleCheck.html to seed existingProjectTitles for the duplicate-title
+ * check against f_projectTitle, which needs the raw title, not this
+ * display string.
+ *
+ * Scans the archive folder once (not once per record) and maps the
+ * highest revision by base filename, so cost stays flat regardless of
+ * how many records are listed. A record whose doc generation failed
+ * (the "partial success" / "document pending" case) has no matching file
+ * yet and is labeled accordingly rather than silently omitted -- it must
+ * stay selectable so the user can fix it.
+ */
+function getProjectDisplayList() {
+  const sheet = getDataSheet_();
+  if (sheet.getLastRow() < 2) return [];
+  const data = sheet.getRange(2, 2, sheet.getLastRow() - 1, 3).getValues(); // B..D: projectTitle, customer, quoteNum
+  const revByBase = {};
+  const folder = DriveApp.getFolderById(CONFIG.DOC_FOLDER_ID);
+  const files = folder.getFiles();
+  const revPattern = /^(.*) - Rev (\d+)$/;
+  while (files.hasNext()) {
+    const f = files.next();
+    const m = f.getName().match(revPattern);
+    if (m) {
+      const rev = parseInt(m[2], 10);
+      if (!revByBase[m[1]] || rev > revByBase[m[1]]) revByBase[m[1]] = rev;
+    }
+  }
+  const list = [];
+  for (let i = 0; i < data.length; i++) {
+    const projectTitle = (data[i][0] || "").toString().trim();
+    const customer = (data[i][1] || "").toString().trim();
+    const quoteNum = (data[i][2] || "").toString().trim();
+    if (!projectTitle) continue;
+    const baseFileName = quoteNum + " - " + customer + " - " + projectTitle;
+    const rev = revByBase[baseFileName];
+    const label = rev ? (baseFileName + " - Rev " + rev) : (baseFileName + " (document pending)");
+    list.push({ key: projectTitle, label: label });
+  }
+  return list;
+}
+/**
  * Helper function that returns raw array values for a project title,
  * indexed by column position (0 = col A). Matches the layout in
  * buildRowValues_() so the edit page can populate its fields.

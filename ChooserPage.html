@@ -20,14 +20,14 @@
     <div id="chooserView">
       <div class="chooser-grid">
         <div class="card">
-          <h2>Start a New Entry</h2>
+          <h2>Start a New Document</h2>
           <p class="card-desc">Open the intake form to enter a brand-new project SOW.</p>
           <a class="btn btn-dark btn-block" id="newEntryBtn" href="#">
             New Entry &rarr;
           </a>
         </div>
         <div class="card">
-          <h2>Edit an Existing Project</h2>
+          <h2>Edit an Existing Document</h2>
           <p class="card-desc">Search and update a saved SOW. Saving regenerates the document.</p>
           <div class="autocomplete-wrapper">
             <input type="text" id="projectInput" placeholder="Search projects..." autocomplete="off">
@@ -43,7 +43,10 @@
     </div>
   </div>
   <script>
-    var allProjects = <?!= JSON.stringify(getProjectList()) ?>;
+    // Each entry is { key, label }: key is the project title (used to build
+    // the edit URL), label is the record's actual current document title
+    // so the list reads the same as what's in Drive.
+    var allProjects = <?!= JSON.stringify(getProjectDisplayList()) ?>;
     var webAppUrl = <?!= JSON.stringify(getWebAppUrl()) ?>;
     var selectedProject = "";
     var activeIndex = -1;
@@ -70,8 +73,8 @@
     // ============ AUTOCOMPLETE ============
     function filterProjects() {
       const query = document.getElementById('projectInput').value.toLowerCase().trim();
-      currentMatches = allProjects.filter(function(name) {
-        return name.toLowerCase().includes(query);
+      currentMatches = allProjects.filter(function(item) {
+        return item.label.toLowerCase().includes(query);
       });
       activeIndex = -1;
       renderList(currentMatches);
@@ -87,14 +90,14 @@
         listDiv.classList.add('open');
         return;
       }
-      items.forEach(function(name, idx) {
+      items.forEach(function(item, idx) {
         const option = document.createElement('div');
         option.className = 'autocomplete-item';
-        option.textContent = name;
+        option.textContent = item.label;
         option.setAttribute('role', 'option');
         option.addEventListener('mousedown', function(e) {
           e.preventDefault();
-          selectItem(name);
+          selectItem(item);
         });
         option.addEventListener('mouseenter', function() {
           activeIndex = idx;
@@ -132,9 +135,9 @@
         closeList();
       }
     }
-    function selectItem(name) {
-      document.getElementById('projectInput').value = name;
-      selectedProject = name;
+    function selectItem(item) {
+      document.getElementById('projectInput').value = item.label;
+      selectedProject = item.key;
       closeList();
     }
     function closeList() {
