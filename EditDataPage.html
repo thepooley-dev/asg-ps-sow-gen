@@ -34,6 +34,7 @@
       <div class="heading-block">
         <div class="eyebrow">Editing Project</div>
         <h2 id="editHeading">Loading&hellip;</h2>
+        <p id="lastEditedBy" class="last-edited-by"></p>
       </div>
       <div class="actions">
         <button class="btn btn-secondary" id="viewDocBtn" onclick="viewLatestDocument()" disabled>View Latest Document</button>
@@ -435,11 +436,20 @@
       bq4:            64,  bq4Summary:     65,  bq4Pct: 66,
       bq5:            67,  bq5Summary:     68,  bq5Pct: 69
     };
+    // Email Address (last editor) -- col BS (71, 1-indexed) / index 70.
+    // Not a form field, so it isn't in FIELDS/COL_INDEX proper; looked up
+    // directly here instead.
+    var EMAIL_COL_INDEX = 70;
     function populateForm(data) {
       // data is an array from getRawRowData, indexed by column position.
       const titleVal = data[COL_INDEX.projectTitle] || '';
       const heading = document.getElementById('editHeading');
       if (heading) heading.textContent = String(titleVal || projectName || 'Untitled');
+      const lastEditedByEl = document.getElementById('lastEditedBy');
+      if (lastEditedByEl) {
+        const lastEditor = (data[EMAIL_COL_INDEX] || '').toString().trim();
+        lastEditedByEl.textContent = lastEditor ? ('Last edited by ' + lastEditor) : '';
+      }
       // Populate every non-toggle field from its column index.
       FIELDS.forEach(function(f) {
         if (f.isToggle) return;

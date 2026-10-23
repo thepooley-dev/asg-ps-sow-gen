@@ -30,8 +30,8 @@ const CONFIG = {
   BOM_START_COL: 61,
   // First of the Work Breakdown 2.7-2.10 columns (col BI). 1-indexed.
   WB7_START_COL: 61,
-  // Last of the extension columns (bq5Pct, col BR). 1-indexed.
-  LAST_EXT_COL: 70
+  // Last of the extension columns (Email Address, col BS). 1-indexed.
+  LAST_EXT_COL: 71
 };
 /**
  * Opens the data sheet. Single access point so callers never hardcode
@@ -111,7 +111,8 @@ function buildRowExtensions_(formData) {
     formData.bq4Pct,           // BO (67)
     formData.bq5,              // BP (68)
     formData.bq5Summary,       // BQ (69)
-    formData.bq5Pct            // BR (70)
+    formData.bq5Pct,           // BR (70)
+    Session.getActiveUser().getEmail() // BS (71) Email Address -- last editor
   ];
   return extValues.map(function(v) {
     return (v === undefined || v === null) ? "" : v;
