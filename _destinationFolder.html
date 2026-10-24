@@ -1,0 +1,140 @@
+    <!-- Document Destination -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-number">8</span>
+        <h3 class="section-title">Document Destination</h3>
+      </div>
+      <div class="field">
+        <label>Save a shortcut to a Drive folder (optional)</label>
+        <div class="dest-folder-row">
+          <button type="button" class="btn btn-secondary" id="chooseDestFolderBtn" onclick="openFolderBrowser()">Choose Folder&hellip;</button>
+          <button type="button" class="btn btn-secondary" id="clearDestFolderBtn" onclick="clearDestFolder()" style="display:none;">Clear</button>
+        </div>
+        <p id="destFolderDisplay" class="dest-folder-display">No destination selected &mdash; document stays in the default archive only.</p>
+        <input type="hidden" id="f_destFolderId">
+        <input type="hidden" id="f_destFolderName">
+      </div>
+    </div>
+    <!-- ============ FOLDER BROWSER MODAL ============ -->
+    <div id="folderBrowserModal" class="modal-overlay">
+      <div class="modal-card folder-browser-card">
+        <h3 class="modal-title">Choose a Destination Folder</h3>
+        <div id="folderBrowserBreadcrumbs" class="folder-breadcrumbs"></div>
+        <div id="folderBrowserList" class="folder-browser-list"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeFolderBrowser()">Cancel</button>
+          <button type="button" class="btn btn-primary" id="selectFolderBtn" onclick="selectCurrentFolder()" disabled>Select This Folder</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      // Custom Drive folder browser. Calls listFolderChildren() (Code.js)
+      // directly: built-in DriveApp for ordinary folder-to-folder navigation
+      // (it already understands Shared Drive folder IDs natively), plus
+      // the Drive Advanced Service just to enumerate the Shared Drives
+      // themselves and "Shared with me" items at the top level. (Google
+      // Picker was tried first on prem-sla-gen and dropped -- its dedicated
+      // Shared-Drive folder view has a long-standing Google-side bug where
+      // a Shared Drive's contents don't load even though the drive itself
+      // shows up in the list.)
+      var folderBrowserPath = [];
+      function openFolderBrowser() {
+        folderBrowserPath = [{ id: 'TOP', name: 'Browse' }];
+        document.getElementById('folderBrowserModal').classList.add('visible');
+        loadFolderLevel('TOP');
+      }
+      function closeFolderBrowser() {
+        document.getElementById('folderBrowserModal').classList.remove('visible');
+      }
+      function loadFolderLevel(parentId) {
+        var listEl = document.getElementById('folderBrowserList');
+        listEl.innerHTML = '<p class="folder-browser-status">Loading&hellip;</p>';
+        renderBreadcrumbs();
+        updateSelectFolderButton();
+        google.script.run
+          .withSuccessHandler(function(items) {
+            renderFolderList(items || []);
+          })
+          .withFailureHandler(function(err) {
+            listEl.innerHTML = '<p class="folder-browser-status error">Error loading folders: ' +
+              (err && err.message ? err.message : String(err)) + '</p>';
+          })
+          .listFolderChildren(parentId);
+      }
+      function renderFolderList(items) {
+        var listEl = document.getElementById('folderBrowserList');
+        if (!items.length) {
+          listEl.innerHTML = '<p class="folder-browser-status">No subfolders here.</p>';
+          return;
+        }
+        listEl.innerHTML = '';
+        items.forEach(function(item) {
+          var row = document.createElement('button');
+          row.type = 'button';
+          row.className = 'folder-browser-row';
+          row.textContent = '📁 ' + item.name;
+          row.onclick = function() {
+            folderBrowserPath.push({ id: item.id, name: item.name });
+            loadFolderLevel(item.id);
+          };
+          listEl.appendChild(row);
+        });
+      }
+      function renderBreadcrumbs() {
+        var el = document.getElementById('folderBrowserBreadcrumbs');
+        el.innerHTML = '';
+        folderBrowserPath.forEach(function(crumb, idx) {
+          if (idx > 0) {
+            var sep = document.createElement('span');
+            sep.className = 'folder-breadcrumb-sep';
+            sep.textContent = ' / ';
+            el.appendChild(sep);
+          }
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'folder-breadcrumb-link';
+          btn.textContent = crumb.name;
+          btn.disabled = (idx === folderBrowserPath.length - 1);
+          btn.onclick = function() {
+            folderBrowserPath = folderBrowserPath.slice(0, idx + 1);
+            loadFolderLevel(crumb.id);
+          };
+          el.appendChild(btn);
+        });
+      }
+      function isRealFolder(crumb) {
+        return !!crumb && crumb.id !== 'TOP' && crumb.id !== 'SHARED_WITH_ME';
+      }
+      function updateSelectFolderButton() {
+        var btn = document.getElementById('selectFolderBtn');
+        if (btn) btn.disabled = !isRealFolder(folderBrowserPath[folderBrowserPath.length - 1]);
+      }
+      function selectCurrentFolder() {
+        var current = folderBrowserPath[folderBrowserPath.length - 1];
+        if (!isRealFolder(current)) return;
+        document.getElementById('f_destFolderId').value = current.id;
+        document.getElementById('f_destFolderName').value = current.name;
+        refreshDestFolderDisplay();
+        if (typeof updateSaveButtonEnabled === 'function') updateSaveButtonEnabled();
+        closeFolderBrowser();
+      }
+      function clearDestFolder() {
+        document.getElementById('f_destFolderId').value = '';
+        document.getElementById('f_destFolderName').value = '';
+        refreshDestFolderDisplay();
+        if (typeof updateSaveButtonEnabled === 'function') updateSaveButtonEnabled();
+      }
+      function refreshDestFolderDisplay() {
+        var display = document.getElementById('destFolderDisplay');
+        var clearBtn = document.getElementById('clearDestFolderBtn');
+        var idVal = document.getElementById('f_destFolderId').value;
+        var nameVal = document.getElementById('f_destFolderName').value;
+        if (display) {
+          display.textContent = idVal
+            ? ('Destination: ' + nameVal)
+            : 'No destination selected — document stays in the default archive only.';
+        }
+        if (clearBtn) clearBtn.style.display = idVal ? '' : 'none';
+      }
+      document.addEventListener('DOMContentLoaded', refreshDestFolderDisplay);
+    </script>

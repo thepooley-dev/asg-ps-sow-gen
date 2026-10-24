@@ -72,5 +72,10 @@
     { id: 'f_includeBreakdown', formKey: 'includeBreakdown', isToggle: true },
     // COMMENTED OUT — BoM removal: includeBoM toggle disabled.
     // { id: 'f_includeBoM',       formKey: 'includeBoM',       isToggle: true }
+    // Hidden inputs set by the Choose Folder picker (see _destinationFolder.html),
+    // not visible text fields -- but .value works the same way, so they ride
+    // along for free in the existing snapshot/dirty-check/payload logic.
+    { id: 'f_destFolderId',   formKey: 'destFolderId'   },
+    { id: 'f_destFolderName', formKey: 'destFolderName' }
   ];
 </script>

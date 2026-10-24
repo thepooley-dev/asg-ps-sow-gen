@@ -30,8 +30,11 @@ const CONFIG = {
   BOM_START_COL: 61,
   // First of the Work Breakdown 2.7-2.10 columns (col BI). 1-indexed.
   WB7_START_COL: 61,
-  // Last of the extension columns (Email Address, col BS). 1-indexed.
-  LAST_EXT_COL: 71
+  // Last of the extension columns (Shortcut File ID, col BV). 1-indexed.
+  // Email Address is BS (71), then BT (72) Destination Folder ID, BU (73)
+  // Destination Folder Name, BV (74) Shortcut File ID -- server-managed,
+  // see generateDocForRow.
+  LAST_EXT_COL: 74
 };
 /**
  * Opens the data sheet. Single access point so callers never hardcode
@@ -112,7 +115,13 @@ function buildRowExtensions_(formData) {
     formData.bq5,              // BP (68)
     formData.bq5Summary,       // BQ (69)
     formData.bq5Pct,           // BR (70)
-    Session.getActiveUser().getEmail() // BS (71) Email Address -- last editor
+    Session.getActiveUser().getEmail(), // BS (71) Email Address -- last editor
+    formData.destFolderId,     // BT (72)
+    formData.destFolderName    // BU (73)
+    // BV (74) Shortcut File ID is server-managed only -- NOT written here.
+    // It's populated by generateDocForRow() after it creates the shortcut,
+    // so this array intentionally stops at BU; the getRange() write below
+    // only touches as many columns as are in this array.
   ];
   return extValues.map(function(v) {
     return (v === undefined || v === null) ? "" : v;
@@ -124,7 +133,7 @@ function buildRowExtensions_(formData) {
  * writing past the sheet's current column capacity on first use.
  */
 function ensureColumns_(sheet) {
-  const needed = CONFIG.LAST_EXT_COL; // last extension column (BR)
+  const needed = CONFIG.LAST_EXT_COL; // last extension column (BV)
   if (sheet.getMaxColumns() < needed) {
     sheet.insertColumnsAfter(sheet.getMaxColumns(), needed - sheet.getMaxColumns());
   }
@@ -598,6 +607,36 @@ function generateDocForRow(rowNumber) {
   } catch (purgeErr) {
     Logger.log("Old-revision purge failed (non-fatal): " + purgeErr);
   }
+  // Destination-folder shortcut: only the latest revision is ever kept (the
+  // file gets a new ID every regeneration), so any shortcut pointing at the
+  // previous file would go stale. Trash the old shortcut (if any) and, if a
+  // destination is still set, create a fresh one pointing at the new file.
+  // Column BV (shortcut file ID) is server-managed -- buildRowExtensions_
+  // deliberately never writes it, so this is the only place it's touched.
+  var destFolderId = (row[71] || "").toString().trim();
+  var oldShortcutId = (row[73] || "").toString().trim();
+  if (oldShortcutId) {
+    try {
+      DriveApp.getFileById(oldShortcutId).setTrashed(true);
+    } catch (shortcutTrashErr) {
+      Logger.log("Could not trash old shortcut '" + oldShortcutId + "' (non-fatal): " + shortcutTrashErr);
+    }
+  }
+  var newShortcutId = "";
+  if (destFolderId) {
+    try {
+      var shortcut = Drive.Files.create({
+        name: finalFileName,
+        mimeType: "application/vnd.google-apps.shortcut",
+        shortcutDetails: { targetId: targetDocId },
+        parents: [destFolderId]
+      });
+      newShortcutId = shortcut.id;
+    } catch (shortcutCreateErr) {
+      Logger.log("Could not create destination shortcut (non-fatal): " + shortcutCreateErr);
+    }
+  }
+  sheet.getRange(rowNumber, 74).setValue(newShortcutId); // BV
   return {
     docUrl: copyFile.getUrl(),
     fileName: finalFileName,
@@ -1050,6 +1089,48 @@ function validatePercents_(formData) {
  */
 function getWebAppUrl() {
   return ScriptApp.getService().getUrl();
+}
+/**
+ * Returns [{id, name}] of the immediate folder children of parentId, for
+ * the custom destination-folder browser (see _destinationFolder.html).
+ * parentId === 'TOP' is the sentinel for the top level: "My Drive",
+ * "Shared with me", plus every Shared Drive the executing account is a
+ * formal member of. "Shared with me" is included separately because
+ * Drive.Drives.list() only returns Shared Drives you're a full member
+ * of -- a folder shared with you directly inside someone else's Shared
+ * Drive won't show up there at all, even though you can open it fine.
+ * parentId === 'SHARED_WITH_ME' is a second sentinel for that case.
+ */
+function listFolderChildren(parentId) {
+  if (!parentId || parentId === 'TOP') {
+    var items = [{ id: 'root', name: 'My Drive' }, { id: 'SHARED_WITH_ME', name: 'Shared with me' }];
+    var drives = (Drive.Drives.list({ pageSize: 100 }).drives) || [];
+    drives.forEach(function(d) {
+      items.push({ id: d.id, name: d.name });
+    });
+    return items;
+  }
+  if (parentId === 'SHARED_WITH_ME') {
+    var resp = Drive.Files.list({
+      q: "sharedWithMe = true and mimeType = 'application/vnd.google-apps.folder' and trashed = false",
+      pageSize: 100,
+      fields: 'files(id, name)',
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true
+    });
+    var sharedItems = (resp.files || []).map(function(f) { return { id: f.id, name: f.name }; });
+    sharedItems.sort(function(a, b) { return a.name.localeCompare(b.name); });
+    return sharedItems;
+  }
+  var folder = (parentId === 'root') ? DriveApp.getRootFolder() : DriveApp.getFolderById(parentId);
+  var children = [];
+  var subFolders = folder.getFolders();
+  while (subFolders.hasNext()) {
+    var f = subFolders.next();
+    children.push({ id: f.getId(), name: f.getName() });
+  }
+  children.sort(function(a, b) { return a.name.localeCompare(b.name); });
+  return children;
 }
 function testDocGen() {
   generateDocForRow(2); // or whichever row has real data
